@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+set -o errexit
+
+# Create a container
+container=$(buildah from registry.access.redhat.com/rhel7)
+
+# Labels are part of the "buildah config" command
+buildah config --author "Tinsjourney <tintin@gnali.org>" $container
+
+# Copy the binary inside the container
+buildah copy $container rh_reposync.sh /usr/local/bin/
+
+# Copy default config file inside the container
+buildah copy $container config.env /
+
+# Default volume
+buildah config --volume /var/www/html $container
+
+# Define entrypoint
+buildah config --entrypoint '["/usr/local/bin/rh_reposync.sh"]' $container
+
+# Finally saves the running container to an image
+buildah commit $container reposync:$(date +%Y%m%d)
+
+# Remove building container
+buildah rm $container
