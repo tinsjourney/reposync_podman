@@ -3,7 +3,7 @@
 set -o errexit
 
 # Create a container
-container=$(buildah from registry.access.redhat.com/rhel7)
+container=$(buildah from --name reposync registry.access.redhat.com/rhel7)
 
 # Labels are part of the "buildah config" command
 buildah config --created-by "Tinsjourney" $container
