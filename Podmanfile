@@ -6,13 +6,17 @@ set -o errexit
 container=$(buildah from registry.access.redhat.com/rhel7)
 
 # Labels are part of the "buildah config" command
-buildah config --author "Tinsjourney <tintin@gnali.org>" $container
+buildah config --created-by "Tinsjourney" $container
+buildah config --author "tintin@gnali.org @tinsjourney" --label name=reposync $container
+#buildah config --label run="podman run --name reposync -dt -v \$\{PWD\}/myconfig.env:/usr/local/etc/config.env:Z -v \$\{PWD\}/repo:/var/www/html:Z IMAGE" $container
 
 # Copy the binary inside the container
-buildah copy $container rh_reposync.sh /usr/local/bin/
+buildah run $container curl -sLo /usr/local/bin/rh_reposync.sh https://raw.githubusercontent.com/tinsjourney/misc/master/rh_reposync.sh
+buildah run $container chmod +x /usr/local/bin/rh_reposync.sh
 
 # Copy default config file inside the container
-buildah copy $container config.env /
+buildah copy $container config.env /usr/local/etc/
+buildah config --env CONFIG="/usr/local/etc/config.env" $container
 
 # Default volume
 buildah config --volume /var/www/html $container
@@ -20,8 +24,5 @@ buildah config --volume /var/www/html $container
 # Define entrypoint
 buildah config --entrypoint '["/usr/local/bin/rh_reposync.sh"]' $container
 
-# Finally saves the running container to an image
-buildah commit $container reposync:$(date +%Y%m%d)
-
-# Remove building container
-buildah rm $container
+# Finally saves the running container to an image and remove building container
+buildah commit --rm $container reposync:$(date +%Y%m%d)
