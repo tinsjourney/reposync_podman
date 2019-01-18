@@ -8,7 +8,7 @@ container=$(buildah from --name reposync registry.access.redhat.com/rhel7)
 # Labels are part of the "buildah config" command
 buildah config --created-by "Tinsjourney" $container
 buildah config --author "tintin@gnali.org @tinsjourney" --label name=reposync $container
-#buildah config --label run="podman run --name reposync -dt -v \$\{PWD\}/myconfig.env:/usr/local/etc/config.env:Z -v \$\{PWD\}/repo:/var/www/html:Z IMAGE" $container
+buildah config --label run="podman run --name reposync -dt -v \${PWD}/myconfig.env:/usr/local/etc/config.env:Z -v \$\{PWD\}/repo:/var/www/html:Z IMAGE" $container
 
 # Copy the binary inside the container
 buildah run $container curl -sLo /usr/local/bin/rh_reposync.sh https://raw.githubusercontent.com/tinsjourney/misc/master/rh_reposync.sh
@@ -26,3 +26,8 @@ buildah config --entrypoint '["/usr/local/bin/rh_reposync.sh"]' $container
 
 # Finally saves the running container to an image and remove building container
 buildah commit --rm $container reposync:$(date +%Y%m%d)
+
+# Push images to external repository
+# buildah push reposync:$(date +%Y%m%d) docker://quay.io/tinsjourney/reposync:$(date +%Y%m%d)
+# buildah push reposync:$(date +%Y%m%d) docker://docker.io/tinsjourney/reposync:$(date +%Y%m%d)
+# buildah push reposync:$(date +%Y%m%d) docker://docker.io/tinsjourney/reposync:latest
